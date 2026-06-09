@@ -1,12 +1,15 @@
 # BIXI GBFS Logger
 
-Records BIXI's live station-availability feed every ~10 minutes so we can measure
+Records BIXI's live station-availability feed every **5 minutes** so we can measure
 **when and where stations run empty (no bikes) or full (no docks)** — information
 that the BIXI trip-history files *cannot* give us (they only show rides that
 happened, never unmet demand).
 
 It runs on **GitHub Actions** (GitHub's free servers), so it keeps logging
-24/7 even when your own computer is off.
+24/7 even when your own computer is off. To get dense, regular sampling despite
+GitHub throttling scheduled jobs, the logger uses one **long-running** workflow
+(`log_loop.py`) that snapshots every 5 minutes for ~5.5 hours, then a frequent
+cron + a concurrency guard immediately starts the next run.
 
 ## What it produces (in the `data/` folder)
 - `station_information.csv` — one row per station: id, name, lat, lon, capacity (written once).
@@ -34,7 +37,8 @@ was **full**. Counting those moments per station = our stockout/availability dat
 5. Go to the **Actions** tab → enable workflows if prompted → open
    **"BIXI GBFS logger"** → **Run workflow** to test it once.
 6. After it succeeds, check the `data/` folder — you'll see the first CSVs.
-   From now on it runs automatically every ~10 minutes.
+   The run stays alive and snapshots every 5 minutes; when it ends (~5.5h) the
+   next run starts automatically.
 
 ## Pushing with git (recommended over drag-drop)
 From inside this folder:
@@ -59,9 +63,12 @@ empty = df[df.num_bikes_available == 0]
 ```
 
 ## Notes
-- Scheduled runs are in **UTC** and can be delayed a few minutes (sometimes skipped)
-  under GitHub load — fine for our purpose.
-- Data grows ~10–12 MB/day. To shrink it, change the cron in `logger.yml` to
-  `*/15` or `*/20` (every 15/20 min), or filter to tourist-zone stations later.
+- The long-running design (`log_loop.py`) makes sampling dense/regular even though
+  GitHub delays scheduled jobs. Each run lasts ~5.5h (the 6h job cap) and the next
+  one chains on via the frequent cron + concurrency guard. Small gaps (≤ ~20 min)
+  can occur between chained runs — acceptable for detecting empty/full episodes.
+- To change cadence, edit `INTERVAL` in `log_loop.py` (seconds between snapshots).
+- Data grows quickly at 5-min sampling. To shrink it, raise `INTERVAL`, or filter
+  to tourist-zone stations later.
 - Scheduled workflows pause after 60 days of no repo activity — the logger's own
   commits count as activity, so it stays alive through the project.

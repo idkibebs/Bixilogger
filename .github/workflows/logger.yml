@@ -2,21 +2,24 @@ name: BIXI GBFS logger
 
 on:
   schedule:
-    # Every 10 minutes (UTC). GitHub may delay or occasionally skip scheduled
-    # runs under load — fine for detecting empty/full episodes.
-    - cron: "*/10 * * * *"
-  workflow_dispatch:   # lets you trigger a run manually from the Actions tab
+    # Frequent restart attempts. Because of the concurrency guard below, while a
+    # long run is alive these just sit as a single "pending" run and start the
+    # moment the active run ends — so logging stays continuous even though
+    # GitHub delays/throttles cron timing.
+    - cron: "*/20 * * * *"
+  workflow_dispatch:   # run manually from the Actions tab
 
 permissions:
-  contents: write       # allow the workflow to commit the data back
+  contents: write
 
 concurrency:
   group: bixi-logger
-  cancel-in-progress: false
+  cancel-in-progress: false   # never kill the active logger; keep one run pending
 
 jobs:
   log:
     runs-on: ubuntu-latest
+    timeout-minutes: 350       # ~5h50m; the loop exits cleanly at 340 min
     steps:
       - uses: actions/checkout@v4
 
@@ -24,18 +27,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Snapshot the live feed
-        run: python log_status.py
-
-      - name: Commit new data
+      - name: Configure git
         run: |
           git config user.name "bixi-logger"
           git config user.email "actions@users.noreply.github.com"
-          git add data
-          if git diff --cached --quiet; then
-            echo "nothing to commit"
-          else
-            git commit -m "log: $(date -u +%FT%TZ) [skip ci]"
-            git pull --rebase --autostash || true
-            git push
-          fi
+
+      - name: Run logging loop (snapshot every 5 min for ~5.5h)
+        run: python log_loop.py
