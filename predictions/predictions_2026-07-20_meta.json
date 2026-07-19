@@ -1,0 +1,15 @@
+{
+  "generated_utc": "2026-07-19T23:39:19+00:00",
+  "window": [
+    "2026-07-20",
+    "2026-07-26"
+  ],
+  "trained_through": "2026-07-19",
+  "train_rows_weather_joined": 525,
+  "target": "share of active stations with <= 2 bikes, per date x local hour (UTC-4)",
+  "models": {
+    "baseline": "mean share-empty by local hour (full history)",
+    "rf": "RandomForest(400, leaf>=3) on ['hour', 'dow', 'weekend', 'temp', 'rhum', 'rain_hour', 'daily_precip']; dry/wet weather scenarios"
+  },
+  "dry_run": false
+}
