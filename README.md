@@ -1,5 +1,7 @@
 # BIXI GBFS Logger
 
+> **Status: collection ended 2026-08-20.** The project is complete (final graded), so the scheduled logger was stopped — the cron trigger in `.github/workflows/logger.yml` is commented out and no new runs are queued. All data collected from **2026-06-08 to 2026-08-20** remains in `data/`, and the frozen forward-test predictions remain in `predictions/`. To resume, uncomment the `schedule:` block (or run the workflow manually via *Actions → Run workflow*).
+
 Records BIXI's live station-availability feed every **5 minutes** so we can measure
 **when and where stations run empty (no bikes) or full (no docks)** — information
 that the BIXI trip-history files *cannot* give us (they only show rides that
