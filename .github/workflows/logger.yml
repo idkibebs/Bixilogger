@@ -1,13 +1,15 @@
 name: BIXI GBFS logger
 
 on:
-  schedule:
-    # Frequent restart attempts. Because of the concurrency guard below, while a
-    # long run is alive these just sit as a single "pending" run and start the
-    # moment the active run ends — so logging stays continuous even though
-    # GitHub delays/throttles cron timing.
-    - cron: "*/20 * * * *"
-  workflow_dispatch:   # run manually from the Actions tab
+  # SCHEDULE DISABLED 2026-08-20 — project complete (final graded), logger stopped.
+  # To resume collection, uncomment the schedule block below.
+  # schedule:
+  #   # Frequent restart attempts. Because of the concurrency guard below, while a
+  #   # long run is alive these just sit as a single "pending" run and start the
+  #   # moment the active run ends — so logging stays continuous even though
+  #   # GitHub delays/throttles cron timing.
+  #   - cron: "*/20 * * * *"
+  workflow_dispatch:   # can still be run manually from the Actions tab
 
 permissions:
   contents: write
